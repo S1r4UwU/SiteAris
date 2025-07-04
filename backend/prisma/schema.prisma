@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  companyName   String?
+  role          UserRole      @default(CLIENT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  orders        Order[]
+  interventions Intervention[] @relation("TechnicianInterventions")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  SUPPORT
+  TECHNICIAN
+}
+
+model ServiceCategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  icon        String?
+  services    Service[]
+}
+
+model Service {
+  id               Int             @id @default(autoincrement())
+  name             String
+  description      String
+  basePrice        Decimal         @db.Decimal(10, 2)
+  categoryId       Int
+  category         ServiceCategory @relation(fields: [categoryId], references: [id])
+  estimatedDuration Int // in minutes
+  active           Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  options          ServiceOption[]
+  orderItems       OrderItem[]
+}
+
+model ServiceOption {
+  id            Int      @id @default(autoincrement())
+  serviceId     Int
+  service       Service  @relation(fields: [serviceId], references: [id])
+  name          String
+  description   String?
+  priceModifier Decimal  @db.Decimal(10, 2)
+  required      Boolean  @default(false)
+}
+
+model Order {
+  id                Int         @id @default(autoincrement())
+  userId            Int
+  user              User        @relation(fields: [userId], references: [id])
+  orderNumber       String      @unique
+  totalAmount       Decimal     @db.Decimal(10, 2)
+  status            OrderStatus @default(PENDING)
+  orderDate         DateTime    @default(now())
+  estimatedDelivery DateTime?
+  paymentStatus     String
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  items             OrderItem[]
+  invoices          Invoice[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model OrderItem {
+  id            Int           @id @default(autoincrement())
+  orderId       Int
+  order         Order         @relation(fields: [orderId], references: [id])
+  serviceId     Int
+  service       Service       @relation(fields: [serviceId], references: [id])
+  unitPrice     Decimal       @db.Decimal(10, 2)
+  quantity      Int           @default(1)
+  configuration Json?
+  createdAt     DateTime      @default(now())
+  interventions Intervention[]
+}
+
+model Intervention {
+  id              Int              @id @default(autoincrement())
+  orderItemId     Int
+  orderItem       OrderItem        @relation(fields: [orderItemId], references: [id])
+  status          InterventionStatus @default(SCHEDULED)
+  scheduledDate   DateTime?
+  completionDate  DateTime?
+  technicianId    Int?
+  technician      User?            @relation("TechnicianInterventions", fields: [technicianId], references: [id])
+  report          Json?
+}
+
+enum InterventionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Invoice {
+  id            Int           @id @default(autoincrement())
+  orderId       Int
+  order         Order         @relation(fields: [orderId], references: [id])
+  invoiceNumber String        @unique
+  amount        Decimal       @db.Decimal(10, 2)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  status        InvoiceStatus @default(PENDING)
+  paymentMethod String?
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+} 
