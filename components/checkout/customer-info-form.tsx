@@ -11,8 +11,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { isValidEmail } from '@/lib/utils';
 import { CustomerInfo } from '@/lib/stripe/config';
-import { createServerComponentClient } from '@/lib/supabase/helpers';
-import { cookies } from 'next/headers';
 
 // Schéma de validation pour les informations du client
 const customerInfoSchema = z.object({

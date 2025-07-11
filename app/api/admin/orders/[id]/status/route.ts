@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerComponentClient } from '@/lib/supabase/helpers';
 import { cookies } from 'next/headers';
 
 export async function PUT(
@@ -7,52 +7,61 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const orderId = params.id;
+    const supabase = createServerComponentClient({ cookies });
     
-    // Vérifier si l'utilisateur est connecté
+    // Vérifier si l'utilisateur est connecté et a les droits d'admin
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       return NextResponse.json(
-        { message: 'Non autorisé' },
+        { error: "Non autorisé" }, 
         { status: 401 }
       );
     }
     
-    // Vérifier si l'utilisateur est administrateur
+    // Récupérer les informations sur l'utilisateur pour vérifier son rôle
     const { data: userData } = await supabase
       .from('users')
       .select('role')
       .eq('id', session.user.id)
       .single();
       
-    if (!userData || userData.role !== 'ADMIN') {
+    if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPPORT')) {
       return NextResponse.json(
-        { message: 'Accès refusé' },
+        { error: "Accès non autorisé" }, 
         { status: 403 }
       );
     }
     
-    // Récupérer les données du corps de la requête
-    const { status, notes } = await req.json();
+    // Récupérer les données envoyées dans la requête
+    const { newStatus, notes } = await req.json();
     
-    // Valider les données
-    if (!status) {
+    if (!newStatus) {
       return NextResponse.json(
-        { message: 'Le statut est requis' },
+        { error: "Le nouveau statut est requis" }, 
         { status: 400 }
       );
     }
     
-    // Vérifier si la commande existe
+    // Valider le statut
+    const validStatuses = ['PENDING', 'PAID_DEPOSIT', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'PAID'];
+    if (!validStatuses.includes(newStatus)) {
+      return NextResponse.json(
+        { error: "Statut non valide" }, 
+        { status: 400 }
+      );
+    }
+    
+    // Récupérer la commande pour vérifier son statut actuel
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, status')
-      .eq('id', params.id)
+      .select('status')
+      .eq('id', orderId)
       .single();
       
     if (orderError || !order) {
       return NextResponse.json(
-        { message: 'Commande non trouvée' },
+        { error: "Commande non trouvée" }, 
         { status: 404 }
       );
     }
@@ -60,167 +69,104 @@ export async function PUT(
     // Mettre à jour le statut de la commande
     const { error: updateError } = await supabase
       .from('orders')
-      .update({ status })
-      .eq('id', params.id);
-      
+      .update({
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId);
+    
     if (updateError) {
       return NextResponse.json(
-        { message: 'Erreur lors de la mise à jour du statut', error: updateError.message },
+        { error: "Erreur lors de la mise à jour du statut de la commande" }, 
         { status: 500 }
       );
     }
     
-    // Ajouter une entrée dans l'historique des statuts
-    const { error: historyError } = await supabase
-      .from('order_status_history')
+    // Ajouter un événement pour le changement de statut
+    const { error: eventError } = await supabase
+      .from('order_events')
       .insert({
-        order_id: params.id,
-        status,
-        notes: notes || null,
-        created_by: session.user.id
+        order_id: orderId,
+        event_type: `STATUT_${newStatus}`,
+        description: notes || `Statut changé en ${newStatus}`,
+        created_at: new Date().toISOString()
       });
-      
-    if (historyError) {
-      console.error('Erreur lors de l\'ajout à l\'historique:', historyError);
-      // On continue malgré l'erreur d'historique
+    
+    if (eventError) {
+      console.error('Erreur lors de la création de l\'événement:', eventError);
+      // On continue malgré l'erreur sur l'événement
     }
     
-    // Ajouter une notification pour le client
-    const { data: orderData } = await supabase
-      .from('orders')
-      .select('user_id')
-      .eq('id', params.id)
-      .single();
-      
-    if (orderData) {
-      // Déterminer le message de notification en fonction du statut
-      let title = 'Mise à jour de votre commande';
-      let message = '';
-      
-      switch (status) {
-        case 'PENDING':
-          message = 'Votre commande est en attente de traitement.';
-          break;
-        case 'PAID_DEPOSIT':
-          message = 'Nous avons bien reçu votre acompte. Votre commande est en cours de préparation.';
-          break;
-        case 'IN_PROGRESS':
-          message = 'Votre commande est maintenant en cours de traitement.';
-          break;
-        case 'COMPLETED':
-          message = 'Votre commande a été complétée avec succès.';
-          break;
-        case 'CANCELLED':
-          message = 'Votre commande a été annulée.';
-          break;
-        default:
-          message = `Le statut de votre commande a été mis à jour: ${status}`;
-      }
-      
-      // Ajouter la notification
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: orderData.user_id,
-          type: 'ORDER_UPDATE',
-          title,
-          message,
-          action_url: `/account/orders/${params.id}`,
-          metadata: {
-            order_id: params.id,
-            status
-          }
-        });
+    // Créer une notification pour l'utilisateur
+    const { error: notifError } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: session.user.id, // Idéalement, utiliser l'ID de l'utilisateur propriétaire de la commande
+        type: 'ORDER_UPDATE',
+        title: 'Mise à jour de commande',
+        message: `Le statut de votre commande a été changé en ${newStatus}`,
+        read: false,
+        action_url: `/account/orders/${orderId}`,
+        created_at: new Date().toISOString()
+      });
+    
+    if (notifError) {
+      console.error('Erreur lors de la création de la notification:', notifError);
+      // On continue malgré l'erreur sur la notification
     }
     
     return NextResponse.json({
-      message: 'Statut mis à jour avec succès',
-      status
+      success: true,
+      message: "Statut de la commande mis à jour",
+      status: newStatus
     });
-    
   } catch (error) {
-    console.error('Erreur dans la route PUT /api/admin/orders/[id]/status:', error);
+    console.error('Erreur lors de la mise à jour du statut:', error);
     return NextResponse.json(
-      { message: 'Erreur serveur' },
+      { error: "Erreur serveur" }, 
       { status: 500 }
     );
   }
 }
 
-// Récupérer l'historique des statuts d'une commande
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const orderId = params.id;
+    const supabase = createServerComponentClient({ cookies });
     
     // Vérifier si l'utilisateur est connecté
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       return NextResponse.json(
-        { message: 'Non autorisé' },
+        { error: "Non autorisé" }, 
         { status: 401 }
       );
     }
     
-    // Vérifier si l'utilisateur est administrateur ou propriétaire de la commande
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-      
-    const { data: orderData } = await supabase
-      .from('orders')
-      .select('user_id')
-      .eq('id', params.id)
-      .single();
-      
-    const isAdmin = userData?.role === 'ADMIN';
-    const isOwner = orderData?.user_id === session.user.id;
-    
-    if (!isAdmin && !isOwner) {
-      return NextResponse.json(
-        { message: 'Accès refusé' },
-        { status: 403 }
-      );
-    }
-    
-    // Récupérer l'historique des statuts
-    const { data: history, error } = await supabase
-      .from('order_status_history')
-      .select(`
-        id,
-        status,
-        notes,
-        created_at,
-        created_by,
-        users (
-          id,
-          email,
-          first_name,
-          last_name
-        )
-      `)
-      .eq('order_id', params.id)
+    // Récupérer l'historique des statuts de la commande
+    const { data: statusHistory, error } = await supabase
+      .from('order_events')
+      .select('*')
+      .eq('order_id', orderId)
       .order('created_at', { ascending: false });
       
     if (error) {
       return NextResponse.json(
-        { message: 'Erreur lors de la récupération de l\'historique', error: error.message },
+        { error: "Erreur lors de la récupération de l'historique des statuts" }, 
         { status: 500 }
       );
     }
     
     return NextResponse.json({
-      history
+      statusHistory
     });
-    
   } catch (error) {
-    console.error('Erreur dans la route GET /api/admin/orders/[id]/status:', error);
+    console.error('Erreur lors de la récupération de l\'historique des statuts:', error);
     return NextResponse.json(
-      { message: 'Erreur serveur' },
+      { error: "Erreur serveur" }, 
       { status: 500 }
     );
   }

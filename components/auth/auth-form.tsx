@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -35,14 +35,23 @@ type LoginFormValues = z.infer<typeof loginSchema>
 type RegisterFormValues = z.infer<typeof registerSchema>
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
 
-export default function AuthForm() {
+interface AuthFormProps {
+  initialMode?: 'login' | 'register' | 'forgotPassword';
+}
+
+export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
   const router = useRouter()
-  const [mode, setMode] = useState<'login' | 'register' | 'forgotPassword'>('login')
+  const [mode, setMode] = useState('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   
-  const supabase = createClientComponentClient<Database>()
+  // Utiliser useEffect pour définir le mode initial
+  useEffect(() => {
+    setMode(initialMode)
+  }, [initialMode])
+  
+  const supabase = createClientComponentClient()
   
   const { register: registerLogin, handleSubmit: handleLoginSubmit, formState: { errors: loginErrors } } = 
     useForm<LoginFormValues>({

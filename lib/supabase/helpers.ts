@@ -1,20 +1,44 @@
-import { createClientComponentClient as originalCreateClientComponentClient, createServerComponentClient as originalCreateServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { supabaseConfig } from './config';
-import { Database } from '@/types/supabase';
+// Helpers pour les clients Supabase
+import { createClient } from './client';
 
-// Wrapper pour createClientComponentClient qui utilise la configuration codée en dur
-export function createClientComponentClient<T = Database>() {
-  return originalCreateClientComponentClient<T>({
-    supabaseUrl: supabaseConfig.supabaseUrl,
-    supabaseKey: supabaseConfig.supabaseKey
-  } as any);
+// Type pour la session utilisateur
+export interface UserSession {
+  user: {
+    id: string;
+    email: string;
+    role?: string;
+  };
 }
 
-// Wrapper pour createServerComponentClient qui utilise la configuration codée en dur
-export function createServerComponentClient<T = Database>(options: { cookies: any }) {
-  return originalCreateServerComponentClient<T>({
-    cookies: options.cookies,
-    supabaseUrl: supabaseConfig.supabaseUrl,
-    supabaseKey: supabaseConfig.supabaseKey
-  } as any);
-} 
+// Fonction pour créer un client Supabase pour les composants côté serveur
+export function createServerComponentClient({ cookies }: { cookies: any }) {
+  // On réutilise le client mock de client.ts
+  const client = createClient();
+  
+  // On surcharge la méthode getSession pour retourner une session simulée avec un ID utilisateur valide
+  const authWithSession = {
+    ...client.auth,
+    getSession: () => Promise.resolve({ 
+      data: { 
+        session: { 
+          user: { 
+            id: 'mock-user-id',
+            email: 'user@example.com',
+            role: 'USER'
+          } 
+        } 
+      },
+      error: null
+    })
+  };
+  
+  return {
+    ...client,
+    auth: authWithSession
+  };
+}
+
+// Fonction pour créer un client Supabase pour les composants côté client
+export function createClientComponentClient() {
+  return createClient();
+}

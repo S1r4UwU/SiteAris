@@ -185,7 +185,7 @@ export default function PlanningPage() {
                   <SelectValue placeholder="Tous les techniciens" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les techniciens</SelectItem>
+                  <SelectItem value="all">Tous les techniciens</SelectItem>
                   {technicians.map((tech) => (
                     <SelectItem key={tech.id} value={tech.id.toString()}>
                       {tech.name}
@@ -205,7 +205,7 @@ export default function PlanningPage() {
                   <SelectValue placeholder="Tous les statuts" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les statuts</SelectItem>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="SCHEDULED">Planifiée</SelectItem>
                   <SelectItem value="CONFIRMED">Confirmée</SelectItem>
                   <SelectItem value="IN_PROGRESS">En cours</SelectItem>
@@ -225,7 +225,7 @@ export default function PlanningPage() {
                   <SelectValue placeholder="Tous les types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les types</SelectItem>
+                  <SelectItem value="all">Tous les types</SelectItem>
                   <SelectItem value="INSTALLATION">Installation</SelectItem>
                   <SelectItem value="AUDIT">Audit</SelectItem>
                   <SelectItem value="MAINTENANCE">Maintenance</SelectItem>

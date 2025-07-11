@@ -4,22 +4,24 @@ import { Inter } from 'next/font/google';
 import { Navigation } from '@/components/ui/navigation';
 import { Footer } from '@/components/ui/footer';
 import CartProvider from '@/components/panier/cart-provider';
+import { ChatSupportWidget } from '@/components/chat/chat-support-widget';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | SiteAris',
-    default: 'SiteAris - Services Informatiques et Cybersécurité',
+    default: 'SiteAris - Services informatiques et cybersécurité',
+    template: '%s | SiteAris'
   },
-  description: 'Solutions informatiques et de cybersécurité pour les entreprises, avec tarifs transparents et expertise reconnue.',
-  keywords: ['informatique', 'cybersécurité', 'services IT', 'audit sécurité', 'maintenance informatique'],
-  icons: {
-    icon: '/favicon.ico',
+  description: 'SiteAris propose des services informatiques et de cybersécurité sur mesure pour les entreprises, avec une expertise reconnue et des tarifs transparents.',
+  keywords: 'services informatiques, cybersécurité, audit sécurité, maintenance informatique, sécurisation réseau',
+  authors: [{ name: 'SiteAris' }],
+  creator: 'SiteAris',
+  publisher: 'SiteAris',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
 };
 
@@ -30,13 +32,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={inter.className}>
         <CartProvider>
-          <Navigation />
-          <div className="flex-grow">
-            {children}
+          <div className="flex flex-col min-h-screen">
+            <Navigation />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            {/* Widget de chat support */}
+            <ChatSupportWidget />
           </div>
-          <Footer />
         </CartProvider>
       </body>
     </html>

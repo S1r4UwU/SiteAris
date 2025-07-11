@@ -15,9 +15,12 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import AdminStatsChart from '@/components/admin/stats-chart';
+import dynamic from 'next/dynamic';
 import AdminRecentOrders from '@/components/admin/recent-orders';
 import AdminRecentUsers from '@/components/admin/recent-users';
+
+// Importer le composant client avec dynamic pour éviter les erreurs SSR
+const AdminStatsChart = dynamic(() => import('@/components/admin/stats-chart'), { ssr: false });
 
 export default async function AdminDashboard() {
   const supabase = createServerComponentClient({ cookies });

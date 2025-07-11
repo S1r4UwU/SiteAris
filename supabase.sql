@@ -458,3 +458,287 @@ INSERT INTO service_options (service_id, option_name, option_type, description, 
 (3, 'Intervention sur site', 'boolean', 'Inclut des interventions sur site', 150.00, false, false, 2, 'false', NULL),
 (4, 'Nombre de participants', 'number', 'Nombre de personnes à former', 50.00, true, true, 1, '10', NULL),
 (4, 'Support post-formation', 'boolean', 'Accès à un expert pendant 3 mois', 250.00, false, false, 2, 'false', NULL); 
+
+-- Enrichissement des profils clients
+CREATE TABLE customer_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  acquisition_source TEXT,
+  lifetime_value DECIMAL(10, 2) DEFAULT 0,
+  engagement_score INTEGER DEFAULT 0,
+  last_activity TIMESTAMP WITH TIME ZONE,
+  company_size TEXT,
+  industry TEXT,
+  business_type TEXT,
+  technical_level TEXT CHECK (technical_level IN ('NOVICE', 'INTERMEDIATE', 'EXPERT')),
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Segmentation client
+CREATE TABLE customer_segments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  criteria JSONB NOT NULL,
+  is_dynamic BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Association des clients aux segments
+CREATE TABLE customer_segment_members (
+  customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  segment_id UUID REFERENCES customer_segments(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  PRIMARY KEY (customer_id, segment_id)
+);
+
+-- SLA défini pour les types de services
+CREATE TABLE service_sla_definitions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  service_id UUID REFERENCES services(id) ON DELETE CASCADE,
+  response_time_minutes INTEGER NOT NULL,
+  resolution_time_minutes INTEGER NOT NULL,
+  priority TEXT CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+  business_hours_only BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Tracking SLA sur les interventions
+CREATE TABLE intervention_sla_tracking (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  intervention_id UUID REFERENCES interventions(id) ON DELETE CASCADE,
+  sla_definition_id UUID REFERENCES service_sla_definitions(id),
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  target_response_time TIMESTAMP WITH TIME ZONE,
+  actual_response_time TIMESTAMP WITH TIME ZONE,
+  target_resolution_time TIMESTAMP WITH TIME ZONE,
+  actual_resolution_time TIMESTAMP WITH TIME ZONE,
+  status TEXT CHECK (status IN ('PENDING', 'RESPONDED', 'RESOLVED', 'BREACHED')),
+  breach_reason TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Historique de communication client
+CREATE TABLE customer_interactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT CHECK (type IN ('EMAIL', 'PHONE', 'CHAT', 'MEETING', 'OTHER')),
+  subject TEXT,
+  content TEXT,
+  staff_id UUID REFERENCES auth.users(id),
+  related_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  interaction_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Définition des rapports personnalisés
+CREATE TABLE report_templates (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  query_definition JSONB NOT NULL,
+  chart_type TEXT CHECK (chart_type IN ('BAR', 'LINE', 'PIE', 'TABLE', 'CARD', 'CUSTOM')),
+  permissions JSONB,
+  is_public BOOLEAN DEFAULT FALSE,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Rapports générés et sauvegardés
+CREATE TABLE saved_reports (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  template_id UUID REFERENCES report_templates(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  parameters JSONB,
+  result_data JSONB,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Triggers pour les timestamps
+CREATE TRIGGER update_customer_profiles_modified
+BEFORE UPDATE ON customer_profiles
+FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+CREATE TRIGGER update_customer_segments_modified
+BEFORE UPDATE ON customer_segments
+FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+CREATE TRIGGER update_service_sla_definitions_modified
+BEFORE UPDATE ON service_sla_definitions
+FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+CREATE TRIGGER update_intervention_sla_tracking_modified
+BEFORE UPDATE ON intervention_sla_tracking
+FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+CREATE TRIGGER update_report_templates_modified
+BEFORE UPDATE ON report_templates
+FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+-- Création de fonctions pour calculer les métriques clients
+CREATE OR REPLACE FUNCTION calculate_customer_lifetime_value()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE customer_profiles
+  SET lifetime_value = (
+    SELECT COALESCE(SUM(total_amount), 0)
+    FROM orders
+    WHERE user_id = NEW.user_id AND status NOT IN ('CANCELLED', 'PAYMENT_FAILED')
+  )
+  WHERE id = NEW.user_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_customer_ltv
+AFTER INSERT OR UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION calculate_customer_lifetime_value();
+
+-- Fonction pour la mise à jour automatique des membres de segment
+CREATE OR REPLACE FUNCTION update_dynamic_segments()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Clean existing dynamic segments for this customer
+  DELETE FROM customer_segment_members
+  WHERE customer_id = NEW.id
+  AND segment_id IN (SELECT id FROM customer_segments WHERE is_dynamic = TRUE);
+  
+  -- Add to segments based on criteria
+  INSERT INTO customer_segment_members (customer_id, segment_id)
+  SELECT NEW.id, s.id
+  FROM customer_segments s
+  WHERE s.is_dynamic = TRUE
+  AND EXISTS (
+    -- Complex criteria logic would be implemented here
+    -- This is a simplified placeholder
+    SELECT 1
+    FROM customer_profiles cp
+    WHERE cp.id = NEW.id
+    -- Example: if segment criteria specifies high value customers
+    AND (s.criteria->>'min_lifetime_value')::numeric <= cp.lifetime_value
+  );
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER auto_segment_customer
+AFTER INSERT OR UPDATE ON customer_profiles
+FOR EACH ROW
+EXECUTE FUNCTION update_dynamic_segments();
+
+-- Fonction pour la vérification automatique des SLA
+CREATE OR REPLACE FUNCTION check_sla_breaches()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE intervention_sla_tracking
+  SET status = 'BREACHED',
+      breach_reason = 'Automatic detection: SLA deadline passed'
+  WHERE status IN ('PENDING', 'RESPONDED')
+  AND (
+    (target_response_time IS NOT NULL AND target_response_time < NOW() AND actual_response_time IS NULL)
+    OR
+    (target_resolution_time IS NOT NULL AND target_resolution_time < NOW() AND actual_resolution_time IS NULL)
+  );
+  
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_sla_breaches_trigger
+AFTER INSERT OR UPDATE ON intervention_sla_tracking
+EXECUTE FUNCTION check_sla_breaches();
+
+-- RLS Policies pour sécuriser les nouvelles tables
+ALTER TABLE customer_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_segments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_segment_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE service_sla_definitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE intervention_sla_tracking ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_interactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE report_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE saved_reports ENABLE ROW LEVEL SECURITY;
+
+-- Policies pour les profils clients
+CREATE POLICY "Users can view their own profile"
+ON customer_profiles FOR SELECT
+USING (auth.uid() = id);
+
+CREATE POLICY "Admins can view all customer profiles"
+ON customer_profiles FOR SELECT
+USING (auth.role() = 'ADMIN');
+
+CREATE POLICY "Admins can update customer profiles"
+ON customer_profiles FOR UPDATE
+USING (auth.role() = 'ADMIN');
+
+-- Policies pour les segments
+CREATE POLICY "Admins can manage segments"
+ON customer_segments FOR ALL
+USING (auth.role() = 'ADMIN');
+
+CREATE POLICY "Admins can manage segment membership"
+ON customer_segment_members FOR ALL
+USING (auth.role() = 'ADMIN');
+
+-- Policies pour les SLA
+CREATE POLICY "Admins and Support can view SLA definitions"
+ON service_sla_definitions FOR SELECT
+USING (auth.role() IN ('ADMIN', 'SUPPORT'));
+
+CREATE POLICY "Admins can manage SLA definitions"
+ON service_sla_definitions FOR ALL
+USING (auth.role() = 'ADMIN');
+
+CREATE POLICY "Admins and Support can view SLA tracking"
+ON intervention_sla_tracking FOR SELECT
+USING (auth.role() IN ('ADMIN', 'SUPPORT', 'TECHNICIAN'));
+
+CREATE POLICY "Admins can manage SLA tracking"
+ON intervention_sla_tracking FOR ALL
+USING (auth.role() = 'ADMIN');
+
+-- Policies pour les interactions clients
+CREATE POLICY "Users can view their own interactions"
+ON customer_interactions FOR SELECT
+USING (auth.uid() = customer_id);
+
+CREATE POLICY "Staff can view customer interactions"
+ON customer_interactions FOR SELECT
+USING (auth.role() IN ('ADMIN', 'SUPPORT'));
+
+CREATE POLICY "Staff can create customer interactions"
+ON customer_interactions FOR INSERT
+WITH CHECK (auth.role() IN ('ADMIN', 'SUPPORT'));
+
+-- Policies pour les rapports
+CREATE POLICY "Users can view public reports"
+ON report_templates FOR SELECT
+USING (is_public = true);
+
+CREATE POLICY "Users can view their own reports"
+ON report_templates FOR SELECT
+USING (auth.uid() = created_by);
+
+CREATE POLICY "Admins can manage reports"
+ON report_templates FOR ALL
+USING (auth.role() = 'ADMIN');
+
+CREATE POLICY "Users can view their saved reports"
+ON saved_reports FOR SELECT
+USING (auth.uid() = created_by);
+
+CREATE POLICY "Admins can view all saved reports"
+ON saved_reports FOR SELECT
+USING (auth.role() = 'ADMIN');
+
+CREATE POLICY "Users can create saved reports"
+ON saved_reports FOR INSERT
+WITH CHECK (auth.uid() = created_by); 

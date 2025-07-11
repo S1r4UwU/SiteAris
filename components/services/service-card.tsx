@@ -29,7 +29,7 @@ export function ServiceCard({ service, variant = 'default' }: ServiceCardProps) 
 
   // Icône par défaut si aucune n'est spécifiée
   const iconSrc = icon 
-    ? `/icons/${icon}.svg` 
+    ? icon.startsWith('/') ? icon : `/icons/${icon}.svg`
     : '/icons/computer.svg';
   
   // Image par défaut si aucune n'est spécifiée

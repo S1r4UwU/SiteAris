@@ -180,10 +180,10 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                   <SelectValue placeholder="Rôle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les rôles</SelectItem>
+                  <SelectItem value="all">Tous les rôles</SelectItem>
                   <SelectItem value="ADMIN">Administrateur</SelectItem>
-                  <SelectItem value="STAFF">Personnel</SelectItem>
-                  <SelectItem value="USER">Client</SelectItem>
+                  <SelectItem value="SUPPORT">Support</SelectItem>
+                  <SelectItem value="USER">Utilisateur</SelectItem>
                 </SelectContent>
               </Select>
             </div>

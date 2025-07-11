@@ -7,6 +7,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ServiceConfigurator } from '@/components/services/service-configurator';
 import { ServiceRecommendations } from '@/components/services/service-recommendations';
+import { createServerComponentClient } from '@/lib/supabase/helpers';
+import { cookies } from 'next/headers';
+
+// Revalidation toutes les 24h
+export const revalidate = 86400; // 24h en secondes
+
+// Pré-générer les pages de services statiquement
+export async function generateStaticParams() {
+  // Récupérer tous les slugs de services
+  const supabase = createServerComponentClient({ cookies });
+  const { data: services } = await supabase
+    .from('services')
+    .select('slug')
+    .eq('is_active', true);
+  
+  return services?.map((service) => ({
+    slug: service.slug,
+  })) || [];
+}
 
 // Générer les métadonnées dynamiquement
 export async function generateMetadata({ 
@@ -31,7 +50,11 @@ export async function generateMetadata({
       description: service.short_description,
       url: `/services/${service.slug}`,
       type: 'website',
+      images: [service.image_url ? [{ url: service.image_url }] : []].flat(),
     },
+    alternates: {
+      canonical: `/services/${service.slug}`,
+    }
   };
 }
 
@@ -47,7 +70,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
   // Récupérer les services recommandés (de la même catégorie)
   const recommendedServices = await serviceServer.getServices({
     category: service.category?.slug,
-    limit: 3
+    limit: 3,
+    exclude: [service.id]
   });
 
   // Icône par défaut si aucune n'est spécifiée
@@ -106,6 +130,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 alt={service.name} 
                 width={32} 
                 height={32}
+                priority // Priorité de chargement pour améliorer le LCP
               />
             </div>
             {service.category && (

@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+# Règles Globales pour le Développement
+
+## Principes Généraux
+- Utiliser TypeScript strict avec types explicites
+- Préférer la programmation fonctionnelle aux classes
+- Commentaires en anglais uniquement
+- Suivre les principes DRY, KISS et YAGNI
+
+## Standards de Code
+- Utiliser des composants fonctionnels React
+- Privilégier les named imports
+- Éviter les enums, utiliser des maps à la place
+- Toujours valider les inputs et préconditions
+
+## Next.js & React
+- Utiliser l'App Router Next.js
+- Préférer les Server Components quand possible
+- Utiliser Tailwind CSS pour le styling
+- Implémenter la gestion d'erreur appropriée
+
+## Supabase
+- Utiliser les RLS policies pour la sécurité
+- Optimiser les requêtes pour éviter les N+1 queries
+- Implémenter la gestion d'erreur pour les requêtes DB

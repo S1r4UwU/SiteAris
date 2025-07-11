@@ -189,7 +189,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les statuts</SelectItem>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="PENDING">En attente</SelectItem>
                   <SelectItem value="PAID_DEPOSIT">Acompte payé</SelectItem>
                   <SelectItem value="IN_PROGRESS">En cours</SelectItem>

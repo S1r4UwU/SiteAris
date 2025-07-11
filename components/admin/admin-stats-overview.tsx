@@ -1,26 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatPrice } from '@/lib/utils';
+import React from 'react';
 import { 
   ArrowUp, 
   ArrowDown, 
-  CreditCard, 
   Users, 
   Package2, 
-  BarChart3,
-  TrendingUp,
+  Calendar, 
+  CreditCard,
   AlertTriangle,
-  CheckCircle,
-  Clock
+  TrendingUp,
+  Percent
 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { formatPrice } from '@/lib/utils';
+import dynamic from 'next/dynamic';
 
-// Importer le composant de graphique si disponible
-import AdminStatsChart from '@/components/admin/stats-chart';
+// Importer le composant de graphique avec dynamic pour éviter les erreurs SSR
+const AdminStatsChart = dynamic(() => import('@/components/admin/stats-chart'), { ssr: false });
 
 interface StatCard {
   title: string;
@@ -57,282 +55,167 @@ export default function AdminStatsOverview({
   stats,
   alerts
 }: AdminStatsOverviewProps) {
-  const [periodFilter, setPeriodFilter] = useState<'day' | 'week' | 'month' | 'year'>('month');
-
-  // Cartes de statistiques principales
-  const mainStats: StatCard[] = [
+  const statCards: StatCard[] = [
     {
-      title: 'Chiffre d\'affaires',
-      value: formatPrice(stats.totalRevenue),
+      title: "Chiffre d'affaires mensuel",
+      value: formatPrice(stats.monthlyRevenue),
       change: stats.monthlyChange,
-      icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
-      description: `${formatPrice(stats.monthlyRevenue)} ce mois-ci`
+      icon: <CreditCard className="h-8 w-8 text-muted-foreground opacity-50" />,
+      description: `${stats.monthlyChange >= 0 ? '+' : ''}${stats.monthlyChange.toFixed(1)}% vs mois précédent`
     },
     {
-      title: 'Commandes',
+      title: "Commandes",
       value: stats.totalOrders,
       change: stats.ordersChange,
-      icon: <Package2 className="h-5 w-5 text-muted-foreground" />,
-      description: `${stats.pendingOrders} en attente`
+      icon: <Package2 className="h-8 w-8 text-muted-foreground opacity-50" />,
+      description: `${stats.ordersChange >= 0 ? '+' : ''}${stats.ordersChange.toFixed(1)}% vs mois précédent`
     },
     {
-      title: 'Clients',
+      title: "Clients",
       value: stats.totalUsers,
-      icon: <Users className="h-5 w-5 text-muted-foreground" />,
-      description: 'Total utilisateurs'
+      icon: <Users className="h-8 w-8 text-muted-foreground opacity-50" />,
+      description: "Clients actifs"
     },
     {
-      title: 'Panier moyen',
+      title: "Panier moyen",
       value: formatPrice(stats.averageOrderValue),
-      icon: <BarChart3 className="h-5 w-5 text-muted-foreground" />,
-      description: `Taux de conversion: ${stats.conversionRate}%`
+      icon: <TrendingUp className="h-8 w-8 text-muted-foreground opacity-50" />,
+      description: "Par commande"
+    },
+    {
+      title: "Taux de conversion",
+      value: `${stats.conversionRate}%`,
+      icon: <Percent className="h-8 w-8 text-muted-foreground opacity-50" />,
+      description: "Visiteurs → Clients"
+    },
+    {
+      title: "Commandes en attente",
+      value: stats.pendingOrders,
+      icon: <Calendar className="h-8 w-8 text-muted-foreground opacity-50" />,
+      description: "À traiter"
     }
   ];
 
   return (
     <div className="space-y-6">
-      {/* KPIs principaux */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {mainStats.map((stat, index) => (
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {statCards.map((card, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {stat.title}
+                {card.title}
               </CardTitle>
-              {stat.icon}
+              {card.icon}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              {stat.change !== undefined && (
+              <div className="text-2xl font-bold">{card.value}</div>
+              {card.change !== undefined && (
                 <div className="flex items-center pt-1 text-xs">
-                  {stat.change > 0 ? (
+                  {card.change > 0 ? (
                     <>
                       <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
-                      <span className="text-green-500">+{stat.change.toFixed(1)}%</span>
+                      <span className="text-green-500">+{card.change.toFixed(1)}%</span>
                     </>
-                  ) : stat.change < 0 ? (
+                  ) : card.change < 0 ? (
                     <>
                       <ArrowDown className="mr-1 h-3 w-3 text-red-500" />
-                      <span className="text-red-500">{stat.change.toFixed(1)}%</span>
+                      <span className="text-red-500">{card.change.toFixed(1)}%</span>
                     </>
                   ) : (
                     <span className="text-muted-foreground">Stable</span>
                   )}
-                  <span className="text-muted-foreground ml-1">vs mois précédent</span>
                 </div>
               )}
               <p className="text-xs text-muted-foreground pt-1">
-                {stat.description}
+                {card.description}
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Graphiques */}
-      <Tabs defaultValue="revenue" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="revenue">Chiffre d'affaires</TabsTrigger>
-            <TabsTrigger value="orders">Commandes</TabsTrigger>
-            <TabsTrigger value="conversion">Conversion</TabsTrigger>
-          </TabsList>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Chiffre d'affaires</CardTitle>
+            <CardDescription>
+              Évolution sur les 6 derniers mois
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="h-[300px]">
+              <AdminStatsChart data={revenueData} />
+            </div>
+          </CardContent>
+        </Card>
 
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant={periodFilter === 'day' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setPeriodFilter('day')}
-            >
-              Jour
-            </Button>
-            <Button 
-              variant={periodFilter === 'week' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setPeriodFilter('week')}
-            >
-              Semaine
-            </Button>
-            <Button 
-              variant={periodFilter === 'month' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setPeriodFilter('month')}
-            >
-              Mois
-            </Button>
-            <Button 
-              variant={periodFilter === 'year' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setPeriodFilter('year')}
-            >
-              Année
-            </Button>
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Commandes</CardTitle>
+            <CardDescription>
+              Évolution sur les 6 derniers mois
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="h-[300px]">
+              <AdminStatsChart data={ordersData} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="revenue" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution du chiffre d'affaires</CardTitle>
-              <CardDescription>
-                Analyse du chiffre d'affaires sur les 6 derniers mois
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              {AdminStatsChart ? (
-                <AdminStatsChart data={revenueData} />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">Chargement du graphique...</p>
+      {/* Alerts */}
+      {(alerts.pendingOrdersCount > 0 || alerts.lowStockCount > 0 || alerts.issuesCount > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
+              Alertes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {alerts.pendingOrdersCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Package2 className="mr-2 h-5 w-5 text-amber-500" />
+                    <span>{alerts.pendingOrdersCount} commande(s) en attente</span>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    Voir
+                  </Button>
                 </div>
               )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <div className="text-sm text-muted-foreground">
-                Dernière mise à jour: {new Date().toLocaleDateString()}
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/stats">
-                  Statistiques détaillées
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="orders" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution des commandes</CardTitle>
-              <CardDescription>
-                Nombre de commandes sur les 6 derniers mois
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              {AdminStatsChart ? (
-                <AdminStatsChart data={ordersData} />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">Chargement du graphique...</p>
+              
+              {alerts.lowStockCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <AlertTriangle className="mr-2 h-5 w-5 text-red-500" />
+                    <span>{alerts.lowStockCount} produit(s) en stock faible</span>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    Voir
+                  </Button>
                 </div>
               )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <div className="text-sm text-muted-foreground">
-                Dernière mise à jour: {new Date().toLocaleDateString()}
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/orders">
-                  Voir toutes les commandes
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="conversion" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Taux de conversion</CardTitle>
-              <CardDescription>
-                Analyse du taux de conversion et performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="text-5xl font-bold mb-4">{stats.conversionRate}%</div>
-                <p className="text-muted-foreground mb-6">Taux de conversion moyen</p>
-                <div className="w-full max-w-md grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{stats.totalOrders}</div>
-                    <p className="text-sm text-muted-foreground">Commandes</p>
+              
+              {alerts.issuesCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <AlertTriangle className="mr-2 h-5 w-5 text-blue-500" />
+                    <span>{alerts.issuesCount} problème(s) technique(s) signalé(s)</span>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{formatPrice(stats.averageOrderValue)}</div>
-                    <p className="text-sm text-muted-foreground">Panier moyen</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Alertes et actions requises */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
-            Actions requises
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {alerts.pendingOrdersCount > 0 && (
-              <div className="flex items-start">
-                <Clock className="mr-2 h-5 w-5 text-amber-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">{alerts.pendingOrdersCount} commande(s) en attente</p>
-                  <p className="text-sm text-muted-foreground">
-                    Des commandes nécessitent votre attention
-                  </p>
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
-                    <Link href="/admin/orders?status=PENDING">
-                      Traiter les commandes
-                    </Link>
+                  <Button size="sm" variant="outline">
+                    Voir
                   </Button>
                 </div>
-              </div>
-            )}
-            
-            {alerts.lowStockCount > 0 && (
-              <div className="flex items-start">
-                <AlertTriangle className="mr-2 h-5 w-5 text-red-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">{alerts.lowStockCount} service(s) à configurer</p>
-                  <p className="text-sm text-muted-foreground">
-                    Des services nécessitent une configuration
-                  </p>
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
-                    <Link href="/admin/services">
-                      Gérer les services
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {alerts.issuesCount > 0 && (
-              <div className="flex items-start">
-                <AlertTriangle className="mr-2 h-5 w-5 text-red-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">{alerts.issuesCount} problème(s) signalé(s)</p>
-                  <p className="text-sm text-muted-foreground">
-                    Des problèmes ont été signalés et nécessitent votre attention
-                  </p>
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
-                    <Link href="/admin/issues">
-                      Voir les problèmes
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {alerts.pendingOrdersCount === 0 && alerts.lowStockCount === 0 && alerts.issuesCount === 0 && (
-              <div className="flex items-start">
-                <CheckCircle className="mr-2 h-5 w-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">Tout est à jour</p>
-                  <p className="text-sm text-muted-foreground">
-                    Aucune action requise pour le moment
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 } 

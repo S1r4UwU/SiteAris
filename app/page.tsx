@@ -3,39 +3,21 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { createServerComponentClient } from '@/lib/supabase/helpers'
+import { cookies } from 'next/headers'
 
 export const metadata: Metadata = {
   title: 'SiteAris - Services informatiques et cybersécurité',
   description: 'Solutions sur mesure en informatique et cybersécurité pour les entreprises, avec tarifs transparents et expertise reconnue.',
+  openGraph: {
+    title: 'SiteAris - Services informatiques et cybersécurité',
+    description: 'Solutions sur mesure en informatique et cybersécurité pour les entreprises, avec tarifs transparents et expertise reconnue.',
+    images: ['/og-image.jpg'],
+  },
 }
 
-// Données des services mis en avant
-const featuredServices = [
-  {
-    id: 1,
-    title: 'Audit de Sécurité Complet',
-    description: 'Évaluation approfondie de votre infrastructure avec rapport détaillé et recommandations.',
-    icon: '/icons/security.svg',
-    price: 'À partir de 1200€',
-    link: '/services/audit-securite'
-  },
-  {
-    id: 2,
-    title: 'Sécurisation Réseau Entreprise',
-    description: 'Protection complète de votre réseau avec firewall nouvelle génération et monitoring 24/7.',
-    icon: '/icons/network.svg',
-    price: 'À partir de 850€',
-    link: '/services/securisation-reseau'
-  },
-  {
-    id: 3,
-    title: 'Maintenance Informatique Préventive',
-    description: 'Contrat de maintenance régulière pour prévenir les pannes et optimiser performances.',
-    icon: '/icons/computer.svg',
-    price: 'À partir de 350€/mois',
-    link: '/services/maintenance-informatique'
-  }
-]
+// Activer ISR avec revalidation toutes les heures
+export const revalidate = 3600; // 1 heure en secondes
 
 // Données des témoignages clients
 const testimonials = [
@@ -55,7 +37,27 @@ const testimonials = [
   }
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Récupérer les services mis en avant depuis Supabase
+  const supabase = createServerComponentClient({ cookies });
+  const { data: featuredServices } = await supabase
+    .from('services')
+    .select('id, name, short_description, slug, icon, display_price, base_price')
+    .eq('is_featured', true)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+    .limit(3);
+  
+  // Formater les services pour l'affichage
+  const formattedServices = featuredServices?.map(service => ({
+    id: service.id,
+    title: service.name,
+    description: service.short_description,
+    icon: service.icon || '/icons/service-default.svg',
+    price: service.display_price || `À partir de ${service.base_price}€`,
+    link: `/services/${service.slug}`
+  })) || [];
+
   return (
     <main>
       {/* Bannière principale */}
@@ -124,33 +126,40 @@ export default function HomePage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredServices.map((service) => (
-              <Card key={service.id} className="h-full flex flex-col">
-                <CardHeader className="text-center">
-                  <div className="flex justify-center mb-4">
-                    <Image 
-                      src={service.icon} 
-                      alt={service.title} 
-                      width={64} 
-                      height={64}
-                      className="text-primary-500" 
-                    />
-                  </div>
-                  <CardTitle>{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{service.description}</p>
-                  <p className="text-primary-600 font-semibold">{service.price}</p>
-                </CardContent>
-                <CardFooter className="mt-auto pt-4">
-                  <Link href={service.link} className="w-full">
-                    <Button variant="outline" fullWidth={true}>
-                      En savoir plus
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            ))}
+            {formattedServices.length > 0 ? (
+              formattedServices.map((service) => (
+                <Card key={service.id} className="h-full flex flex-col">
+                  <CardHeader className="text-center">
+                    <div className="flex justify-center mb-4">
+                      <Image 
+                        src={service.icon} 
+                        alt={service.title} 
+                        width={64} 
+                        height={64}
+                        className="text-primary-500" 
+                      />
+                    </div>
+                    <CardTitle>{service.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4">{service.description}</p>
+                    <p className="text-primary-600 font-semibold">{service.price}</p>
+                  </CardContent>
+                  <CardFooter className="mt-auto pt-4">
+                    <Link href={service.link} className="w-full">
+                      <Button variant="outline" fullWidth={true}>
+                        En savoir plus
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))
+            ) : (
+              // Fallback si aucun service n'est trouvé
+              <div className="col-span-3 text-center py-8">
+                <p className="text-gray-500">Nos services sont en cours de chargement...</p>
+              </div>
+            )}
           </div>
 
           <div className="text-center mt-12">

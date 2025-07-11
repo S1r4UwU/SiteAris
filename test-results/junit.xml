@@ -1,0 +1,577 @@
+<testsuites id="" name="" tests="17" failures="17" skipped="0" errors="0" time="211.362957">
+<testsuite name="admin.spec.ts" timestamp="2025-07-10T18:36:49.444Z" hostname="chromium" tests="5" failures="5" skipped="0" time="122.931" errors="0">
+<testcase name="Tableau de bord administrateur › Affiche le tableau de bord avec les KPIs" classname="admin.spec.ts" time="40.159">
+<failure message="admin.spec.ts:18:7 Affiche le tableau de bord avec les KPIs" type="FAILURE">
+<![CDATA[  [chromium] › admin.spec.ts:18:7 › Tableau de bord administrateur › Affiche le tableau de bord avec les KPIs 
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      3 | test.describe("Tableau de bord administrateur", () => {
+      4 |   // Authentification administrateur avant chaque test
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Accéder à la page d'authentification
+      7 |     await page.goto('/auth');
+      8 |     
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:5:8
+
+    Error: page.goto: net::ERR_ABORTED; maybe frame was detached?
+    Call log:
+      - navigating to "http://localhost:3000/auth", waiting until "load"
+
+
+       5 |   test.beforeEach(async ({ page }) => {
+       6 |     // Accéder à la page d'authentification
+    >  7 |     await page.goto('/auth');
+         |                ^
+       8 |     
+       9 |     // Se connecter en tant qu'administrateur
+      10 |     await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:7:16
+]]>
+</failure>
+</testcase>
+<testcase name="Tableau de bord administrateur › Navigation dans les sections administratives" classname="admin.spec.ts" time="40.172">
+<failure message="admin.spec.ts:27:7 Navigation dans les sections administratives" type="FAILURE">
+<![CDATA[  [chromium] › admin.spec.ts:27:7 › Tableau de bord administrateur › Navigation dans les sections administratives 
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      3 | test.describe("Tableau de bord administrateur", () => {
+      4 |   // Authentification administrateur avant chaque test
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Accéder à la page d'authentification
+      7 |     await page.goto('/auth');
+      8 |     
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:5:8
+
+    Error: page.goto: net::ERR_ABORTED; maybe frame was detached?
+    Call log:
+      - navigating to "http://localhost:3000/auth", waiting until "load"
+
+
+       5 |   test.beforeEach(async ({ page }) => {
+       6 |     // Accéder à la page d'authentification
+    >  7 |     await page.goto('/auth');
+         |                ^
+       8 |     
+       9 |     // Se connecter en tant qu'administrateur
+      10 |     await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:7:16
+]]>
+</failure>
+</testcase>
+<testcase name="Tableau de bord administrateur › Gestion des commandes" classname="admin.spec.ts" time="14.622">
+<failure message="admin.spec.ts:44:7 Gestion des commandes" type="FAILURE">
+<![CDATA[  [chromium] › admin.spec.ts:44:7 › Tableau de bord administrateur › Gestion des commandes ─────────
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+       8 |     
+       9 |     // Se connecter en tant qu'administrateur
+    > 10 |     await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+         |                                    ^
+      11 |     await page.getByLabel('Mot de passe').fill(process.env.ADMIN_PASSWORD || 'admin123');
+      12 |     await page.getByRole('button', { name: 'Se connecter' }).click();
+      13 |     
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:10:36
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/admin-Tableau-de-bord-administrateur-Gestion-des-commandes-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/admin-Tableau-de-bord-administrateur-Gestion-des-commandes-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-Tableau-de-bord-administrateur-Gestion-des-commandes-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|admin-Tableau-de-bord-administrateur-Gestion-des-commandes-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Tableau de bord administrateur › Gestion des services" classname="admin.spec.ts" time="14.471">
+<failure message="admin.spec.ts:66:7 Gestion des services" type="FAILURE">
+<![CDATA[  [chromium] › admin.spec.ts:66:7 › Tableau de bord administrateur › Gestion des services ──────────
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+       8 |     
+       9 |     // Se connecter en tant qu'administrateur
+    > 10 |     await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+         |                                    ^
+      11 |     await page.getByLabel('Mot de passe').fill(process.env.ADMIN_PASSWORD || 'admin123');
+      12 |     await page.getByRole('button', { name: 'Se connecter' }).click();
+      13 |     
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:10:36
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/admin-Tableau-de-bord-administrateur-Gestion-des-services-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/admin-Tableau-de-bord-administrateur-Gestion-des-services-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-Tableau-de-bord-administrateur-Gestion-des-services-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|admin-Tableau-de-bord-administrateur-Gestion-des-services-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Tableau de bord administrateur › Déconnexion" classname="admin.spec.ts" time="13.507">
+<failure message="admin.spec.ts:89:7 Déconnexion" type="FAILURE">
+<![CDATA[  [chromium] › admin.spec.ts:89:7 › Tableau de bord administrateur › Déconnexion ───────────────────
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+       8 |     
+       9 |     // Se connecter en tant qu'administrateur
+    > 10 |     await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+         |                                    ^
+      11 |     await page.getByLabel('Mot de passe').fill(process.env.ADMIN_PASSWORD || 'admin123');
+      12 |     await page.getByRole('button', { name: 'Se connecter' }).click();
+      13 |     
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/admin.spec.ts:10:36
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/admin-Tableau-de-bord-administrateur-Déconnexion-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/admin-Tableau-de-bord-administrateur-Déconnexion-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|admin-Tableau-de-bord-administrateur-Déconnexion-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|admin-Tableau-de-bord-administrateur-Déconnexion-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2025-07-10T18:36:49.444Z" hostname="chromium" tests="5" failures="5" skipped="0" time="60.361" errors="0">
+<testcase name="Parcours d&apos;authentification › Affiche le formulaire d&apos;authentification" classname="auth.spec.ts" time="8.967">
+<failure message="auth.spec.ts:8:7 Affiche le formulaire d&apos;authentification" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.ts:8:7 › Parcours d'authentification › Affiche le formulaire d'authentification 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByRole('heading', { name: 'Connexion' })
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: 'Connexion' })
+
+
+       7 |
+       8 |   test('Affiche le formulaire d\'authentification', async ({ page }) => {
+    >  9 |     await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
+         |                                                                    ^
+      10 |     await expect(page.getByLabel('Email')).toBeVisible();
+      11 |     await expect(page.getByLabel('Mot de passe')).toBeVisible();
+      12 |     await expect(page.getByRole('button', { name: 'Se connecter' })).toBeVisible();
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/auth.spec.ts:9:68
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Parcours-d-authentifi-79ebd-rmulaire-d-authentification-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Parcours-d-authentifi-79ebd-rmulaire-d-authentification-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-Parcours-d-authentifi-79ebd-rmulaire-d-authentification-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Parcours-d-authentifi-79ebd-rmulaire-d-authentification-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Parcours d&apos;authentification › Affiche des erreurs pour champs vides" classname="auth.spec.ts" time="12.781">
+<failure message="auth.spec.ts:15:7 Affiche des erreurs pour champs vides" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.ts:15:7 › Parcours d'authentification › Affiche des erreurs pour champs vides 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Se connecter' })
+
+
+      14 |
+      15 |   test('Affiche des erreurs pour champs vides', async ({ page }) => {
+    > 16 |     await page.getByRole('button', { name: 'Se connecter' }).click();
+         |                                                              ^
+      17 |     await expect(page.getByText('L\'email est requis')).toBeVisible();
+      18 |     await expect(page.getByText('Le mot de passe est requis')).toBeVisible();
+      19 |   });
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/auth.spec.ts:16:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Parcours-d-authentifi-18ef6-s-erreurs-pour-champs-vides-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Parcours-d-authentifi-18ef6-s-erreurs-pour-champs-vides-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-Parcours-d-authentifi-18ef6-s-erreurs-pour-champs-vides-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Parcours-d-authentifi-18ef6-s-erreurs-pour-champs-vides-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Parcours d&apos;authentification › Affiche erreur pour identifiants invalides" classname="auth.spec.ts" time="12.587">
+<failure message="auth.spec.ts:21:7 Affiche erreur pour identifiants invalides" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.ts:21:7 › Parcours d'authentification › Affiche erreur pour identifiants invalides 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+      20 |
+      21 |   test('Affiche erreur pour identifiants invalides', async ({ page }) => {
+    > 22 |     await page.getByLabel('Email').fill('test@example.com');
+         |                                    ^
+      23 |     await page.getByLabel('Mot de passe').fill('wrongpassword');
+      24 |     await page.getByRole('button', { name: 'Se connecter' }).click();
+      25 |     
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/auth.spec.ts:22:36
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Parcours-d-authentifi-e3cc7-pour-identifiants-invalides-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Parcours-d-authentifi-e3cc7-pour-identifiants-invalides-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-Parcours-d-authentifi-e3cc7-pour-identifiants-invalides-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Parcours-d-authentifi-e3cc7-pour-identifiants-invalides-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Parcours d&apos;authentification › Permet de basculer vers l&apos;inscription" classname="auth.spec.ts" time="13.882">
+<failure message="auth.spec.ts:29:7 Permet de basculer vers l&apos;inscription" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.ts:29:7 › Parcours d'authentification › Permet de basculer vers l'inscription 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Créer un compte' })
+
+
+      28 |
+      29 |   test('Permet de basculer vers l\'inscription', async ({ page }) => {
+    > 30 |     await page.getByRole('button', { name: 'Créer un compte' }).click();
+         |                                                                 ^
+      31 |     await expect(page.getByRole('heading', { name: 'Inscription' })).toBeVisible();
+      32 |     await expect(page.getByLabel('Prénom')).toBeVisible();
+      33 |     await expect(page.getByLabel('Nom')).toBeVisible();
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/auth.spec.ts:30:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Parcours-d-authentifi-c9d04-basculer-vers-l-inscription-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Parcours-d-authentifi-c9d04-basculer-vers-l-inscription-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-Parcours-d-authentifi-c9d04-basculer-vers-l-inscription-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Parcours-d-authentifi-c9d04-basculer-vers-l-inscription-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Parcours d&apos;authentification › Permet de basculer vers récupération de mot de passe" classname="auth.spec.ts" time="12.144">
+<failure message="auth.spec.ts:36:7 Permet de basculer vers récupération de mot de passe" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.ts:36:7 › Parcours d'authentification › Permet de basculer vers récupération de mot de passe 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByText('Mot de passe oublié ?')
+
+
+      35 |
+      36 |   test('Permet de basculer vers récupération de mot de passe', async ({ page }) => {
+    > 37 |     await page.getByText('Mot de passe oublié ?').click();
+         |                                                   ^
+      38 |     await expect(page.getByRole('heading', { name: 'Récupération de mot de passe' })).toBeVisible();
+      39 |     await expect(page.getByLabel('Email')).toBeVisible();
+      40 |     await expect(page.getByRole('button', { name: 'Envoyer les instructions' })).toBeVisible();
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/auth.spec.ts:37:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Parcours-d-authentifi-25fa1-écupération-de-mot-de-passe-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Parcours-d-authentifi-25fa1-écupération-de-mot-de-passe-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-Parcours-d-authentifi-25fa1-écupération-de-mot-de-passe-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Parcours-d-authentifi-25fa1-écupération-de-mot-de-passe-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="chat-support.spec.ts" timestamp="2025-07-10T18:36:49.444Z" hostname="chromium" tests="5" failures="5" skipped="0" time="63.545" errors="0">
+<testcase name="Chat support en temps réel › Côté client › Ouverture du widget de chat" classname="chat-support.spec.ts" time="13.585">
+<failure message="chat-support.spec.ts:11:9 Ouverture du widget de chat" type="FAILURE">
+<![CDATA[  [chromium] › chat-support.spec.ts:11:9 › Chat support en temps réel › Côté client › Ouverture du widget de chat 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByRole('button', { name: /support/i })
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('button', { name: /support/i })
+
+
+      11 |     test('Ouverture du widget de chat', async ({ page }) => {
+      12 |       // Vérifier la présence du bouton de chat
+    > 13 |       await expect(page.getByRole('button', { name: /support/i })).toBeVisible();
+         |                                                                    ^
+      14 |       
+      15 |       // Ouvrir le widget de chat
+      16 |       await page.getByRole('button', { name: /support/i }).click();
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/chat-support.spec.ts:13:68
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/chat-support-Chat-support--7ae44-Ouverture-du-widget-de-chat-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/chat-support-Chat-support--7ae44-Ouverture-du-widget-de-chat-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|chat-support-Chat-support--7ae44-Ouverture-du-widget-de-chat-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|chat-support-Chat-support--7ae44-Ouverture-du-widget-de-chat-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Chat support en temps réel › Côté client › Création d&apos;une nouvelle conversation" classname="chat-support.spec.ts" time="12.27">
+<failure message="chat-support.spec.ts:23:9 Création d&apos;une nouvelle conversation" type="FAILURE">
+<![CDATA[  [chromium] › chat-support.spec.ts:23:9 › Chat support en temps réel › Côté client › Création d'une nouvelle conversation 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /support/i })
+
+
+      23 |     test('Création d\'une nouvelle conversation', async ({ page }) => {
+      24 |       // Ouvrir le widget de chat
+    > 25 |       await page.getByRole('button', { name: /support/i }).click();
+         |                                                            ^
+      26 |       
+      27 |       // Démarrer une nouvelle conversation
+      28 |       await page.getByRole('button', { name: /nouvelle conversation/i }).click();
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/chat-support.spec.ts:25:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/chat-support-Chat-support--b59da-d-une-nouvelle-conversation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/chat-support-Chat-support--b59da-d-une-nouvelle-conversation-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|chat-support-Chat-support--b59da-d-une-nouvelle-conversation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|chat-support-Chat-support--b59da-d-une-nouvelle-conversation-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Chat support en temps réel › Côté administrateur › Affichage des conversations" classname="chat-support.spec.ts" time="12.299">
+<failure message="chat-support.spec.ts:56:9 Affichage des conversations" type="FAILURE">
+<![CDATA[  [chromium] › chat-support.spec.ts:56:9 › Chat support en temps réel › Côté administrateur › Affichage des conversations 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+      46 |       // Se connecter en tant qu'administrateur
+      47 |       await page.goto('/auth');
+    > 48 |       await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+         |                                      ^
+      49 |       await page.getByLabel('Mot de passe').fill(process.env.ADMIN_PASSWORD || 'admin123');
+      50 |       await page.getByRole('button', { name: 'Se connecter' }).click();
+      51 |       
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/chat-support.spec.ts:48:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/chat-support-Chat-support--ee1d2-Affichage-des-conversations-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/chat-support-Chat-support--ee1d2-Affichage-des-conversations-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|chat-support-Chat-support--ee1d2-Affichage-des-conversations-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|chat-support-Chat-support--ee1d2-Affichage-des-conversations-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Chat support en temps réel › Côté administrateur › Répondre à une conversation" classname="chat-support.spec.ts" time="12.747">
+<failure message="chat-support.spec.ts:64:9 Répondre à une conversation" type="FAILURE">
+<![CDATA[  [chromium] › chat-support.spec.ts:64:9 › Chat support en temps réel › Côté administrateur › Répondre à une conversation 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+      46 |       // Se connecter en tant qu'administrateur
+      47 |       await page.goto('/auth');
+    > 48 |       await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+         |                                      ^
+      49 |       await page.getByLabel('Mot de passe').fill(process.env.ADMIN_PASSWORD || 'admin123');
+      50 |       await page.getByRole('button', { name: 'Se connecter' }).click();
+      51 |       
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/chat-support.spec.ts:48:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/chat-support-Chat-support--5b6c9-Répondre-à-une-conversation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/chat-support-Chat-support--5b6c9-Répondre-à-une-conversation-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|chat-support-Chat-support--5b6c9-Répondre-à-une-conversation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|chat-support-Chat-support--5b6c9-Répondre-à-une-conversation-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Chat support en temps réel › Côté administrateur › Changement de statut d&apos;une conversation" classname="chat-support.spec.ts" time="12.644">
+<failure message="chat-support.spec.ts:98:9 Changement de statut d&apos;une conversation" type="FAILURE">
+<![CDATA[  [chromium] › chat-support.spec.ts:98:9 › Chat support en temps réel › Côté administrateur › Changement de statut d'une conversation 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Email')
+
+
+      46 |       // Se connecter en tant qu'administrateur
+      47 |       await page.goto('/auth');
+    > 48 |       await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@sitearis.com');
+         |                                      ^
+      49 |       await page.getByLabel('Mot de passe').fill(process.env.ADMIN_PASSWORD || 'admin123');
+      50 |       await page.getByRole('button', { name: 'Se connecter' }).click();
+      51 |       
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/chat-support.spec.ts:48:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/chat-support-Chat-support--c52db-e-statut-d-une-conversation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/chat-support-Chat-support--c52db-e-statut-d-une-conversation-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|chat-support-Chat-support--c52db-e-statut-d-une-conversation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|chat-support-Chat-support--c52db-e-statut-d-une-conversation-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="checkout.spec.ts" timestamp="2025-07-10T18:36:49.444Z" hostname="chromium" tests="2" failures="2" skipped="0" time="25.352" errors="0">
+<testcase name="Parcours d&apos;achat › Parcours d&apos;achat complet d&apos;un service" classname="checkout.spec.ts" time="12.698">
+<failure message="checkout.spec.ts:9:7 Parcours d&apos;achat complet d&apos;un service" type="FAILURE">
+<![CDATA[  [chromium] › checkout.spec.ts:9:7 › Parcours d'achat › Parcours d'achat complet d'un service ─────
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('link', { name: /services/i })
+
+
+       9 |   test('Parcours d\'achat complet d\'un service', async ({ page }) => {
+      10 |     // 1. Accéder au catalogue de services
+    > 11 |     await page.getByRole('link', { name: /services/i }).click();
+         |                                                         ^
+      12 |     await expect(page.url()).toContain('/services');
+      13 |     
+      14 |     // 2. Sélectionner un service
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/checkout.spec.ts:11:57
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/checkout-Parcours-d-achat--34bd7--achat-complet-d-un-service-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/checkout-Parcours-d-achat--34bd7--achat-complet-d-un-service-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|checkout-Parcours-d-achat--34bd7--achat-complet-d-un-service-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|checkout-Parcours-d-achat--34bd7--achat-complet-d-un-service-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Parcours d&apos;achat › Ajout et suppression d&apos;un article du panier" classname="checkout.spec.ts" time="12.654">
+<failure message="checkout.spec.ts:58:7 Ajout et suppression d&apos;un article du panier" type="FAILURE">
+<![CDATA[  [chromium] › checkout.spec.ts:58:7 › Parcours d'achat › Ajout et suppression d'un article du panier 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('link', { name: /services/i })
+
+
+      58 |   test('Ajout et suppression d\'un article du panier', async ({ page }) => {
+      59 |     // 1. Accéder au catalogue de services
+    > 60 |     await page.getByRole('link', { name: /services/i }).click();
+         |                                                         ^
+      61 |     
+      62 |     // 2. Ajouter un service au panier
+      63 |     await page.getByText('Maintenance informatique', { exact: false }).first().click();
+        at /Users/notiseoton2/Desktop/SiteAris/tests/e2e/checkout.spec.ts:60:57
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/checkout-Parcours-d-achat--a53df-sion-d-un-article-du-panier-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/checkout-Parcours-d-achat--a53df-sion-d-un-article-du-panier-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|checkout-Parcours-d-achat--a53df-sion-d-un-article-du-panier-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|checkout-Parcours-d-achat--a53df-sion-d-un-article-du-panier-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

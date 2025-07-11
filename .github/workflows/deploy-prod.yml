@@ -1,0 +1,173 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: 'Confirmer le déploiement en production'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  validate:
+    name: Validation pré-déploiement
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run linting
+        run: npm run lint
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Run E2E tests
+        run: |
+          npx playwright install --with-deps
+          npm run test:e2e
+          
+      - name: Run security audit
+        run: npm audit --audit-level=high
+        
+      - name: Run Lighthouse audit
+        run: npm run test:lighthouse
+        
+  deploy_db:
+    name: Deploy Database
+    needs: validate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_deploy || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+          
+      - name: Create DB backup
+        run: |
+          supabase db dump -f backup_$(date +%Y%m%d_%H%M%S).sql --db-url ${{ secrets.SUPABASE_DB_URL }}
+          
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: db-backup
+          path: backup_*.sql
+          retention-days: 30
+          
+      - name: Apply migrations
+        run: |
+          echo "Applying migrations to production database..."
+          supabase db push --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+          
+      - name: Verify RLS policies
+        run: |
+          echo "Verifying Row Level Security policies..."
+          supabase db lint --db-url ${{ secrets.SUPABASE_PROD_DB_URL }}
+          
+  deploy_app:
+    name: Deploy Application
+    needs: deploy_db
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          
+  post_deploy:
+    name: Post-deployment verification
+    needs: deploy_app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check site availability
+        run: |
+          echo "Checking if site is available..."
+          curl -sSf ${{ secrets.NEXT_PUBLIC_SITE_URL }} > /dev/null || exit 1
+          
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          npx playwright test tests/smoke/smoke.spec.ts
+          
+      - name: Verify Core Web Vitals
+        run: |
+          echo "Verifying Core Web Vitals..."
+          npm run test:lighthouse -- --url ${{ secrets.NEXT_PUBLIC_SITE_URL }} --threshold-lcp 2500 --threshold-fid 100 --threshold-cls 0.1
+          
+      - name: Send deployment notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "✅ *SiteAris Production Deployment Complete*\nVersion: ${{ github.sha }}\nEnvironment: Production\nURL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}\nDeployed by: ${{ github.actor }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          
+  rollback:
+    name: Rollback (if needed)
+    needs: [deploy_app, post_deploy]
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Rollback Vercel deployment
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: 'rollback'
+          
+      - name: Send rollback notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "⚠️ *SiteAris Production Deployment Failed*\nRollback initiated\nVersion: ${{ github.sha }}\nEnvironment: Production\nDeployed by: ${{ github.actor }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
